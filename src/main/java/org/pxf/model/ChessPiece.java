@@ -17,7 +17,7 @@ public class ChessPiece {
         ArrayList<ChessBoardPosition> result = new ArrayList<>();
         ChessBoardPosition newPosition;
         for (Direction dir : this.directions){
-            newPosition = new ChessBoardPosition(currPosition.row, currPosition.col);
+            newPosition = new ChessBoardPosition(currPosition);
             for (int i = 1; i <= this.nSteps; i++){
                 newPosition = dir.step(newPosition, team);
                 if (board.isInBounds(newPosition)){
@@ -46,27 +46,17 @@ class Knight extends ChessPiece{
 }
 class Bishop extends ChessPiece{
 
-    Bishop(Team team){ super(team, "B", new Direction []{Direction.FORWARD_LEFT, Direction.FORWARD_RIGHT,
-            Direction.BACKWARD_LEFT, Direction.BACKWARD_RIGHT}, 8); }
+    Bishop(Team team){ super(team, "B", Direction.getBishopMoves(), 8); }
 
 }
 class Rook extends ChessPiece{
-    Rook(Team team){ super(team, "R", new Direction []{Direction.FORWARD, Direction.BACKWARD,
-            Direction.LEFT, Direction.RIGHT}, 8); }
+    Rook(Team team){ super(team, "R", Direction.getRookDirections(), 8); }
 }
 class Pawn extends ChessPiece{
     Pawn(Team team){ super(team, "P", new Direction []{Direction.FORWARD}, 2); }
     public ArrayList<ChessBoardPosition> getMoves(ChessBoard board, ChessBoardPosition currPosition){
-        ArrayList<ChessBoardPosition> result = new ArrayList<>();
-        ChessBoardPosition newPosition = new ChessBoardPosition(currPosition.row, currPosition.col);
-        Direction forward = Direction.FORWARD;
-        for (int i = 0; i < 2; i++){
-            newPosition = forward.step(newPosition, getTeam());
-            if (isValidForwardMove(board, newPosition)) {
-                result.add(newPosition);
-            }else break;
-        }
-
+        ArrayList<ChessBoardPosition> result = super.getMoves(board, currPosition);
+        ChessBoardPosition newPosition;
         for (Direction dir : new Direction[]{Direction.FORWARD_LEFT, Direction.FORWARD_RIGHT}) {
             newPosition = dir.step(currPosition, getTeam());
             if (isValidDiagonalMove(board, currPosition, newPosition)){
@@ -74,9 +64,6 @@ class Pawn extends ChessPiece{
             }
         }
         return result;
-    }
-    private boolean isValidForwardMove(ChessBoard board, ChessBoardPosition newPosition){
-        return board.isInBounds(newPosition) && board.isEmpty(newPosition);
     }
     private boolean isValidDiagonalMove(ChessBoard board, ChessBoardPosition currPosition, ChessBoardPosition newPosition){
         return  board.isInBounds(newPosition) && board.isOpponent(currPosition, newPosition);
