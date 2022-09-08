@@ -36,10 +36,10 @@ public class ChessPiece {
 }
 
 class Queen extends ChessPiece{
-    Queen(Team team){ super(team, "Q", Direction.getDirections(), 8); }
+    Queen(Team team){ super(team, "Q", Direction.getQueenDirections(), 8); }
 }
 class King extends ChessPiece{
-    King(Team team){ super(team, "K", Direction.getDirections(), 1); }
+    King(Team team){ super(team, "K", Direction.getQueenDirections(), 1); }
 }
 class Knight extends ChessPiece{
     Knight(Team team){ super(team, "N", Direction.getKnightDirections(), 1); }
@@ -66,7 +66,7 @@ class Pawn extends ChessPiece{
                 result.add(newPosition);
             }else break;
         }
-        
+
         for (Direction dir : new Direction[]{Direction.FORWARD_LEFT, Direction.FORWARD_RIGHT}) {
             newPosition = dir.step(currPosition, getTeam());
             if (isValidDiagonalMove(board, currPosition, newPosition)){
