@@ -1,5 +1,7 @@
 package org.pxf.model;
 
+import java.util.stream.Stream;
+
 enum Direction{
     FORWARD(1, 0),
     BACKWARD(-1, 0),
@@ -34,8 +36,15 @@ enum Direction{
         );
     }
 
-    static Direction[] getDirections(){
-        return new Direction[]{FORWARD, BACKWARD, LEFT, RIGHT, FORWARD_LEFT, FORWARD_RIGHT, BACKWARD_LEFT, BACKWARD_RIGHT};
+    static Direction[] getQueenDirections(){
+        return Stream.of(getRookDirections() , getBishopMoves())
+                .flatMap(Stream::of).toArray(Direction[]::new);
+    }
+    static Direction[] getRookDirections(){
+        return new Direction[]{FORWARD, BACKWARD, LEFT, RIGHT};
+    }
+    static Direction[] getBishopMoves(){
+        return new Direction[]{FORWARD_LEFT, FORWARD_RIGHT, BACKWARD_LEFT, BACKWARD_RIGHT};
     }
     static Direction [] getKnightDirections(){
         return new Direction[]{KNIGHT_A, KNIGHT_B, KNIGHT_C, KNIGHT_D, KNIGHT_E, KNIGHT_F, KNIGHT_G, KNIGHT_H};
