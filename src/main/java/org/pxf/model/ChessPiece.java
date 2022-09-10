@@ -35,8 +35,9 @@ public class ChessPiece {
     }
 
     public Team getTeam() { return team; }
-    public String getRepr() { return team.toString().charAt(0) + repr.toUpperCase(); }
     public boolean isKing() { return repr.equalsIgnoreCase("K"); }
+    @Override
+    public String toString() { return " " + team.toString().charAt(0) + repr.toUpperCase() + " "; }
 }
 
 class Queen extends ChessPiece{

@@ -64,5 +64,25 @@ public class ChessBoard {
                 .filter((entry) -> entry.getValue().getTeam() == team)
                 .count();
     }
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("_".repeat(59)).append("\n");
+        ChessBoardPosition currPosition;
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            for (int j = 0; j < BOARD_SIZE; j++) {
+                currPosition = new ChessBoardPosition(i,j);
+                sb.append( " | " );
+                if (isEmpty(currPosition)){
+                    sb.append(currPosition);
+                }else {
+                    sb.append(pieces.get(currPosition));
+                }
+            }
+            sb.append(" |\n");
+        }
+        sb.append("_".repeat(59)).append("\n");
+        return sb.toString();
+    }
 }
 

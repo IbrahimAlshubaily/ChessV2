@@ -30,4 +30,9 @@ class ChessBoardPosition {
         return 42 * Integer.hashCode(row) + 7 * Integer.hashCode(col);
 
     }
+
+    @Override
+    public String toString(){
+        return row + "  " + col;
+    }
 }

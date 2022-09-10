@@ -33,4 +33,7 @@ public class Engine {
     public ChessPiece getChessPiece() {
         return new Pawn(Team.WHITE);
     }
+    public String getBoardRepr(){
+        return chessBoard.toString();
+    }
 }
