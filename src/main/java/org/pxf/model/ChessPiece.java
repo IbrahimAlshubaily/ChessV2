@@ -13,23 +13,27 @@ public class ChessPiece {
         this.nSteps = nSteps;
         this.directions = directions;
     }
+    //Break me down. pls.
     public ArrayList<ChessBoardPosition> getMoves(ChessBoard board, ChessBoardPosition currPosition){
         ArrayList<ChessBoardPosition> result = new ArrayList<>();
-        ChessBoardPosition newPosition;
         for (Direction dir : this.directions){
-            newPosition = new ChessBoardPosition(currPosition);
-            for (int i = 1; i <= this.nSteps; i++){
-                newPosition = dir.step(newPosition, team);
-                if (board.isInBounds(newPosition)){
-                    if (board.isValidMove(currPosition, newPosition)) {
-                        result.add(newPosition);
-                        if (board.isEmpty(newPosition)) break;
-                    }else break;
-                }else break;
-            }
+            result.addAll(getMovesInDirection(board, currPosition, dir));
         }
         return result;
     }
+    private ArrayList<ChessBoardPosition> getMovesInDirection(ChessBoard board, ChessBoardPosition currPosition, Direction dir){
+        ArrayList<ChessBoardPosition> result = new ArrayList<>();
+        ChessBoardPosition newPosition = new ChessBoardPosition(currPosition);
+        for (int i = 1; i <= this.nSteps; i++){
+            newPosition = dir.step(newPosition, team);
+            if (board.isValidMove(currPosition, newPosition)) {
+                result.add(newPosition);
+                if (board.isEmpty(newPosition)) break;
+            } else break;
+        }
+        return result;
+    }
+
     public Team getTeam() { return team; }
     public String getRepr() { return team.toString().charAt(0) + repr.toUpperCase(); }
     public boolean isKing() { return repr.equalsIgnoreCase("K"); }
