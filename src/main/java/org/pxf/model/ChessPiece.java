@@ -60,6 +60,11 @@ class Pawn extends ChessPiece{
     Pawn(Team team){ super(team, "P", new Direction []{Direction.FORWARD}, 2); }
     public ArrayList<ChessBoardPosition> getMoves(ChessBoard board, ChessBoardPosition currPosition){
         ArrayList<ChessBoardPosition> result = super.getMoves(board, currPosition);
+        result.addAll(getDiagonalMoves(board, currPosition));
+        return result;
+    }
+    private ArrayList<ChessBoardPosition> getDiagonalMoves(ChessBoard board, ChessBoardPosition currPosition){
+        ArrayList<ChessBoardPosition> result = new ArrayList<>(2);
         ChessBoardPosition newPosition;
         for (Direction dir : new Direction[]{Direction.FORWARD_LEFT, Direction.FORWARD_RIGHT}) {
             newPosition = dir.step(currPosition, getTeam());
