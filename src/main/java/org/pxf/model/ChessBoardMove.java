@@ -32,4 +32,7 @@ public class ChessBoardMove {
     }
 
 
+    public ChessBoardMove step(Direction dir, Team team) {
+        return new ChessBoardMove(source, dir.step(destination, team));
+    }
 }
