@@ -1,6 +1,10 @@
 package org.pxf.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class ChessPiece {
     private final Team team;
@@ -17,23 +21,20 @@ public class ChessPiece {
         this.heuristicValue = heuristicValue;
     }
     //Break me down. pls.
-    public ArrayList<ChessBoardMove> getMoves(ChessBoard board, ChessBoardPosition currPosition){
-        ArrayList<ChessBoardMove> result = new ArrayList<>();
-        for (Direction dir : this.directions){
-            result.addAll(getMovesInDirection(board, currPosition, dir));
-        }
-        return result;
+    public List<ChessBoardMove> getMoves(ChessBoard board, ChessBoardPosition currPosition){
+        return Arrays.stream(this.directions).parallel()
+                .map((dir) -> getMovesInDirection(board, currPosition, dir))
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
     }
     private ArrayList<ChessBoardMove> getMovesInDirection(ChessBoard board, ChessBoardPosition currPosition, Direction dir){
         ArrayList<ChessBoardMove> result = new ArrayList<>();
-        ChessBoardMove currMove;
-        ChessBoardPosition newPosition = new ChessBoardPosition(currPosition);
+        ChessBoardMove currMove = new ChessBoardMove(currPosition, currPosition);
         for (int i = 0; i < this.nSteps; i++){
-            newPosition = dir.step(newPosition, team);
-            currMove = new ChessBoardMove(currPosition, newPosition);
+            currMove = currMove.step(dir, team);
             if (board.isValidMove(currMove)) {
                 result.add(currMove);
-                if (!board.isEmpty(newPosition)) break;
+                if (!board.isEmpty(currMove.destination)) break;
             } else break;
         }
         return result;
@@ -67,23 +68,27 @@ class Rook extends ChessPiece{
     Rook(Team team){ super(team, "R", Direction.getRookDirections(), 8, 5); }
 }
 class Pawn extends ChessPiece{
-    public Pawn(Team team){ super(team, "P", new Direction []{Direction.FORWARD}, 2, 5); }
-    public ArrayList<ChessBoardMove> getMoves(ChessBoard board, ChessBoardPosition currPosition){
-        ArrayList<ChessBoardMove> result = super.getMoves(board, currPosition);
-        result.addAll(getDiagonalMoves(board, currPosition));
-        return result;
+    ArrayList<Direction> diagonalDirections;
+    public Pawn(Team team){
+        super(team, "P", new Direction []{Direction.FORWARD}, 2, 5);
+        this.diagonalDirections = new ArrayList<>();
+
     }
-    private ArrayList<ChessBoardMove> getDiagonalMoves(ChessBoard board, ChessBoardPosition currPosition){
-        ArrayList<ChessBoardMove> result = new ArrayList<>(2);
-        ChessBoardPosition newPosition;
-        ChessBoardMove currMove;
-        for (Direction dir : new Direction[]{Direction.FORWARD_LEFT, Direction.FORWARD_RIGHT}) {
-            newPosition = dir.step(currPosition, getTeam());
-            currMove = new ChessBoardMove(currPosition, newPosition);
-            if (isValidDiagonalMove(board, currMove)){
+    public List<ChessBoardMove> getMoves(ChessBoard board, ChessBoardPosition currPosition){
+        ArrayList<ChessBoardMove> result = new ArrayList<>();
+        ChessBoardMove currMove = new ChessBoardMove(currPosition, currPosition).step(Direction.FORWARD, getTeam());
+        if (board.isEmpty(currMove.destination)) {
+            result.add(currMove);
+            currMove = currMove.step(Direction.FORWARD, getTeam());
+            if (board.isEmpty(currMove.destination))
                 result.add(currMove);
-            }
         }
+
+        diagonalDirections.forEach((direction) -> {
+            ChessBoardMove diagMove = new ChessBoardMove(currPosition, direction.step(currPosition, getTeam()));
+            if (isValidDiagonalMove(board, diagMove))
+                result.add(diagMove);
+        });
         return result;
     }
     private boolean isValidDiagonalMove(ChessBoard board, ChessBoardMove currMove){

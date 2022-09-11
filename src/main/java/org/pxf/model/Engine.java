@@ -2,7 +2,7 @@ package org.pxf.model;
 
 import org.pxf.controller.MinMax;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public class Engine {
     private final ChessBoard chessBoard = new ChessBoard();
@@ -44,7 +44,7 @@ public class Engine {
         return chessBoard.toString();
     }
 
-    public ArrayList<ChessBoardMove> getMoves(ChessPiece piece) {
+    public List<ChessBoardMove> getMoves(ChessPiece piece) {
         return chessBoard.getMoves(piece);
     }
 

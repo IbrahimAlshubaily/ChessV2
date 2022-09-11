@@ -3,6 +3,7 @@ import org.junit.jupiter.api.Test;
 import org.pxf.model.*;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -44,16 +45,13 @@ class EngineTest {
         engine.addPiece(engine.getChessPiece(), 0, 0);
         assertEquals(1, engine.getPiecesCount());
 
-        //Adding the same piece to two different locations
-        engine.addPiece(testPiece, 1, 1);
-        assertEquals(1, engine.getPiecesCount());
     }
 
     @Test
     void testPawnMoves(){
         ChessPiece whitePawn = engine.getChessPiece("Pawn", Team.WHITE);
         engine.addPiece(whitePawn, 1, 4);
-        ArrayList<ChessBoardMove> actualMoves = engine.getMoves(whitePawn);
+        List<ChessBoardMove> actualMoves = engine.getMoves(whitePawn);
 
         ArrayList<ChessBoardMove> expectedMoves = new ArrayList<>();
         expectedMoves.add(new ChessBoardMove(new ChessBoardPosition(1, 4), new ChessBoardPosition(2, 4)));
@@ -72,6 +70,11 @@ class EngineTest {
         assertEquals(expectedMoves.size(), actualMoves.size());
         for (int i = 0; i < actualMoves.size(); i++)
             assertEquals(expectedMoves.get(i), actualMoves.get(i));
+
+
+        engine.addPiece(whitePawn, 5, 4);
+        actualMoves = engine.getMoves(blackPawn);
+        assertEquals(0, actualMoves.size());
     }
 
 

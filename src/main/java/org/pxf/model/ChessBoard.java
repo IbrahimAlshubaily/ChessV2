@@ -81,7 +81,7 @@ public class ChessBoard {
     private Stream<Entry<ChessBoardPosition, ChessPiece>> getTeamStream(Team team){
         return pieces.entrySet().stream().filter((entry) -> entry.getValue().getTeam() == team);
     }
-    public ArrayList<ChessBoardMove> getMoves(ChessPiece piece) {
+    public List<ChessBoardMove> getMoves(ChessPiece piece) {
         return piece.getMoves(this, getPiecePosition(piece));
     }
 
