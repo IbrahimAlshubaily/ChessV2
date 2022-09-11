@@ -4,21 +4,16 @@ import org.pxf.model.ChessBoard;
 import org.pxf.model.ChessBoardMove;
 import org.pxf.model.Team;
 
+import java.util.Comparator;
 import java.util.NoSuchElementException;
 
 
 public class MinMax {
     public static ChessBoardMove getBestMove(ChessBoard board, Team playerOneTeam, int depth) {
-        int maxVal = Integer.MIN_VALUE;
-        ChessBoardMove bestMove = null;
-        for (ChessBoardMove move : board.getMoves(playerOneTeam)){
-            int val = min(board.parallelMove(move), playerOneTeam, depth - 1);
-            if (val > maxVal) {
-                maxVal = val;
-                bestMove = move;
-            }
-        }
-        return bestMove;
+        return board.getMoves(playerOneTeam)
+                .parallelStream()
+                .max(Comparator.comparing(move -> min(board.parallelMove(move), playerOneTeam, depth - 1)))
+                .orElseThrow(NoSuchElementException::new);
     }
     private static int min(ChessBoard board, Team playerOneTeam, int depth ){
         if (board.isGameOver() || depth == 0)
