@@ -9,5 +9,9 @@ public class Main {
         System.out.println(engine.getBoardRepr());
         engine.initPieces();
         System.out.println(engine.getBoardRepr());
+        while (!engine.isGameOver()){
+            engine.minMaxRollout();
+            //TimeUnit.SECONDS.sleep(1);
+        }
     }
 }

@@ -1,7 +1,8 @@
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.pxf.model.ChessPiece;
-import org.pxf.model.Engine;
+import org.pxf.model.*;
+
+import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -15,7 +16,6 @@ class EngineTest {
     @Test
     void testEngineInit() {
         assertFalse(engine.isGameOver());
-        assertEquals("Player 1", engine.getTurn());
         assertEquals(0, engine.getPiecesCount());
 
         engine.initPieces();
@@ -47,6 +47,31 @@ class EngineTest {
         //Adding the same piece to two different locations
         engine.addPiece(testPiece, 1, 1);
         assertEquals(1, engine.getPiecesCount());
+    }
+
+    @Test
+    void testPawnMoves(){
+        ChessPiece whitePawn = engine.getChessPiece("Pawn", Team.WHITE);
+        engine.addPiece(whitePawn, 1, 4);
+        ArrayList<ChessBoardMove> actualMoves = engine.getMoves(whitePawn);
+
+        ArrayList<ChessBoardMove> expectedMoves = new ArrayList<>();
+        expectedMoves.add(new ChessBoardMove(new ChessBoardPosition(1, 4), new ChessBoardPosition(2, 4)));
+        expectedMoves.add(new ChessBoardMove(new ChessBoardPosition(1, 4), new ChessBoardPosition(3, 4)));
+
+        assertEquals(expectedMoves.size(), actualMoves.size());
+        for (int i = 0; i < actualMoves.size(); i++)
+            assertEquals(expectedMoves.get(i), actualMoves.get(i));
+
+        ChessPiece blackPawn =engine.getChessPiece("Pawn", Team.BLACK);
+        engine.addPiece(blackPawn, 6, 4);
+        actualMoves = engine.getMoves(blackPawn);
+        expectedMoves = new ArrayList<>();
+        expectedMoves.add(new ChessBoardMove(new ChessBoardPosition(6, 4), new ChessBoardPosition(5, 4)));
+        expectedMoves.add(new ChessBoardMove(new ChessBoardPosition(6, 4), new ChessBoardPosition(4, 4)));
+        assertEquals(expectedMoves.size(), actualMoves.size());
+        for (int i = 0; i < actualMoves.size(); i++)
+            assertEquals(expectedMoves.get(i), actualMoves.get(i));
     }
 
 

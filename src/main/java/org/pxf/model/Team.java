@@ -1,7 +1,8 @@
 package org.pxf.model;
 
-enum Team{
+public enum Team{
     WHITE,
     BLACK,
+
 }
 
