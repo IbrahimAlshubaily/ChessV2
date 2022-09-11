@@ -71,8 +71,7 @@ class Pawn extends ChessPiece{
     ArrayList<Direction> diagonalDirections;
     public Pawn(Team team){
         super(team, "P", new Direction []{Direction.FORWARD}, 2, 5);
-        this.diagonalDirections = new ArrayList<>();
-
+        this.diagonalDirections = new ArrayList<>(List.of(Direction.FORWARD_LEFT, Direction.FORWARD_RIGHT));
     }
     public List<ChessBoardMove> getMoves(ChessBoard board, ChessBoardPosition currPosition){
         ArrayList<ChessBoardMove> result = new ArrayList<>();
