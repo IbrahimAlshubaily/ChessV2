@@ -74,7 +74,7 @@ class Pawn extends ChessPiece{
         this.diagonalDirections = new ArrayList<>(List.of(Direction.FORWARD_LEFT, Direction.FORWARD_RIGHT));
     }
     public List<ChessBoardMove> getMoves(ChessBoard board, ChessBoardPosition currPosition){
-        ArrayList<ChessBoardMove> result = new ArrayList<>();
+        ArrayList<ChessBoardMove> result = new ArrayList<>(4);
         ChessBoardMove currMove = new ChessBoardMove(currPosition, currPosition).step(Direction.FORWARD, getTeam());
         if (board.isEmpty(currMove.destination)) {
             result.add(currMove);
@@ -84,9 +84,9 @@ class Pawn extends ChessPiece{
         }
 
         diagonalDirections.forEach((direction) -> {
-            ChessBoardMove diagMove = new ChessBoardMove(currPosition, direction.step(currPosition, getTeam()));
-            if (isValidDiagonalMove(board, diagMove))
-                result.add(diagMove);
+            ChessBoardMove diagonalMove = new ChessBoardMove(currPosition, direction.step(currPosition, getTeam()));
+            if (isValidDiagonalMove(board, diagonalMove))
+                result.add(diagonalMove);
         });
         return result;
     }
