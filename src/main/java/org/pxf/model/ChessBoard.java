@@ -1,10 +1,22 @@
 package org.pxf.model;
 
-import java.util.HashMap;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class ChessBoard {
     private static final int BOARD_SIZE = 8;
-    private final HashMap<ChessBoardPosition, ChessPiece> pieces = new HashMap<>();
+    private boolean gameOver = false;
+    private final HashMap<ChessBoardPosition, ChessPiece> pieces;
+
+    public ChessBoard(){
+        this.pieces = new HashMap<>();
+    }
+    public ChessBoard(HashMap<ChessBoardPosition, ChessPiece> pieces) {
+        this.pieces = pieces;
+    }
 
     void initPieces() {
         initFirstRow(Team.WHITE, 0);
@@ -31,39 +43,75 @@ public class ChessBoard {
     }
     void addPiece(ChessPiece piece, int row, int col){
         ChessBoardPosition position = new ChessBoardPosition(row, col);
-        if (isInBounds(position) && !pieces.containsKey(position) && !pieces.containsValue(piece)){
+        if (isInBounds(position) && !pieces.containsKey(position)){
             pieces.put(position, piece);
         }
     }
 
+    public boolean isGameOver() { return gameOver; }
+
+    boolean isValidMove(ChessBoardMove move) {
+        return !isEmpty(move.source) &&
+                isInBounds(move.destination) &&
+                (isEmpty(move.destination) || isOpponent(move));
+    }
     boolean isInBounds(ChessBoardPosition position) {
         return 0 <= position.row && position.row < BOARD_SIZE
                 && 0 <= position.col && position.col < BOARD_SIZE;
     }
-
-    public boolean isValidMove(ChessBoardPosition currPosition, ChessBoardPosition newPosition) {
-        if (!isInBounds(newPosition))
-            return false;
-        if (isEmpty(newPosition))
-            return true;
-        return  isOpponent(currPosition, newPosition);
-    }
-
     boolean isEmpty(ChessBoardPosition position){
         return !pieces.containsKey(position);
     }
-    public boolean isOpponent(ChessBoardPosition currPosition, ChessBoardPosition newPosition) {
-        return !isEmpty(newPosition) && pieces.get(currPosition).getTeam() != pieces.get(newPosition).getTeam();
+
+    boolean isOpponent(ChessBoardMove move) {
+        return !isEmpty(move.destination) &&
+                pieces.get(move.source).getTeam() != pieces.get(move.destination).getTeam();
     }
     public int getPiecesCount() {
         return pieces.size();
     }
 
-    public int getPiecesCount(Team team) {
-        return (int) pieces.entrySet().stream()
-                .filter((entry) -> entry.getValue().getTeam() == team)
-                .count();
+    public int getPiecesCount(Team team) { return (int) getTeamStream(team).count();}
+
+    public int getPiecesHeuristicValue(Team team) {
+        return getTeamStream(team).flatMapToInt(
+                (entry) -> IntStream.of(entry.getValue().getHeuristicValue())).sum();
     }
+
+    private Stream<Entry<ChessBoardPosition, ChessPiece>> getTeamStream(Team team){
+        return pieces.entrySet().stream().filter((entry) -> entry.getValue().getTeam() == team);
+    }
+    public ArrayList<ChessBoardMove> getMoves(ChessPiece piece) {
+        return piece.getMoves(this, getPiecePosition(piece));
+    }
+
+    public ArrayList<ChessBoardMove> getMoves(Team team) {
+        ArrayList<ChessBoardMove> moves = getTeamStream(team)
+                .map((entry) -> entry.getValue().getMoves(this, entry.getKey()))
+                .flatMap(Collection::parallelStream)
+                .collect(Collectors.toCollection(ArrayList::new));
+        Collections.shuffle(moves);
+        return moves;
+    }
+    private ChessBoardPosition getPiecePosition(ChessPiece piece){
+        if (!pieces.containsValue(piece)) return null;
+        return pieces.entrySet().parallelStream()
+                .filter(entry -> entry.getValue().equals(piece))
+                .map(Entry::getKey).collect(Collectors.toList()).get(0);
+    }
+
+    public void move(ChessBoardMove move) {
+        if (pieces.containsKey(move.destination) && pieces.get(move.destination).isKing())
+            gameOver = true;
+        pieces.put(move.destination, pieces.remove(move.source));
+    }
+
+    public ChessBoard parallelMove(ChessBoardMove move) {
+        ChessBoard newBoard = new ChessBoard((HashMap<ChessBoardPosition, ChessPiece>) pieces.clone());
+        newBoard.move(move);
+        return newBoard;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();

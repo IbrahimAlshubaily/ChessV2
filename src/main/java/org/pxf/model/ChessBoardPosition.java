@@ -1,10 +1,10 @@
 package org.pxf.model;
 
-class ChessBoardPosition {
+public class ChessBoardPosition {
     final int row;
     final int col;
 
-    ChessBoardPosition(int row, int col) {
+    public ChessBoardPosition(int row, int col) {
         this.row = row;
         this.col = col;
     }
