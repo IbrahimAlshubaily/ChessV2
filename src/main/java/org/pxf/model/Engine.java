@@ -28,10 +28,8 @@ public class Engine {
     }
 
     public void minMaxRollout() {
-        int searchDepth;
-        int step = 0;
+        int searchDepth = 3;
         while(!isGameOver()){
-            searchDepth = step++ < 10 ? 3 : 5;
             System.out.println(getPiecesCount());
             chessBoard.move(MinMax.getBestMove(chessBoard, Team.WHITE, searchDepth));
             if (!isGameOver())

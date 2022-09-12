@@ -97,7 +97,7 @@ public class ChessBoard {
         if (!pieces.containsValue(piece)) return null;
         return pieces.entrySet().parallelStream()
                 .filter(entry -> entry.getValue().equals(piece))
-                .map(Entry::getKey).collect(Collectors.toList()).get(0);
+                .map(Entry::getKey).iterator().next();
     }
 
     public void move(ChessBoardMove move) {

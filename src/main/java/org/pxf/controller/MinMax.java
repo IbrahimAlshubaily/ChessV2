@@ -7,7 +7,6 @@ import org.pxf.model.Team;
 import java.util.Comparator;
 import java.util.NoSuchElementException;
 
-
 public class MinMax {
     public static ChessBoardMove getBestMove(ChessBoard board, Team playerOneTeam, int depth) {
         return board.getMoves(playerOneTeam)
@@ -31,7 +30,6 @@ public class MinMax {
                 .mapToInt((move) -> min(board.parallelMove(move), playerOneTeam, depth - 1))
                 .max().orElseThrow(NoSuchElementException::new);
     }
-
     private static int eval(ChessBoard board, Team team) {
         return board.getPiecesHeuristicValue(team) - board.getPiecesHeuristicValue(getOpponent(team));
     }

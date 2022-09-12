@@ -24,15 +24,13 @@ public class ChessBoardMove {
     @Override
     public final int hashCode() {
         return 42 * source.hashCode() + 7 * destination.hashCode();
-
     }
     @Override
     public String toString(){
         return source + "  ->  " + destination;
     }
 
-
-    public ChessBoardMove step(Direction dir, Team team) {
-        return new ChessBoardMove(source, dir.step(destination, team));
+    public ChessBoardMove step(Direction dir) {
+        return new ChessBoardMove(source, dir.step(destination));
     }
 }
