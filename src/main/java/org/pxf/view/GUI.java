@@ -18,7 +18,8 @@ class GUI extends JPanel{
     private ChessPiece selected = null;
     public GUI(){
         engine.initPieces();
-        addMouseListener(getMouseListener());
+        //addMouseListener(getMouseListener());
+        new Thread(() -> engine.minMaxRollout(this)).start();
     }
 
     @Override
@@ -51,23 +52,17 @@ class GUI extends JPanel{
             public void mousePressed(MouseEvent e) {
                 int row = e.getY() / GRID_CELL_SIZE;
                 int col = e.getX() / GRID_CELL_SIZE;
+                ChessBoardPosition position = new ChessBoardPosition(row, col);
                 if (selected == null){
-                    selected = select(row, col);
+                    selected = engine.getChessPiece(position);
                     System.out.println("Selected : "+ selected);
                 }else{
-                    move(new ChessBoardPosition(row, col));
+                    engine.move(selected, position);
                     selected = null;
                     repaint();
                 }
             }
         };
-    }
-
-    private ChessPiece select(int row, int col) {
-        return engine.getChessPiece(new ChessBoardPosition(row, col));
-    }
-    private void move(ChessBoardPosition position ) {
-        engine.move(selected, position);
     }
 
     private static void createAndShowGui() {
@@ -76,10 +71,9 @@ class GUI extends JPanel{
         int frameSize = GRID_CELL_SIZE*(BOARD_SIZE+1);
         frame.setSize(frameSize, frameSize);
 
-        JPanel mainPanel = new GUI();
+        GUI mainPanel = new GUI();
         frame.getContentPane().add(mainPanel);
         frame.setVisible(true);
-
     }
 
     public static void main(String[] args){

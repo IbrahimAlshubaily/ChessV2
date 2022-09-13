@@ -71,7 +71,7 @@ public class ChessBoard {
         return pieces.get(position);
     }
     Map<ChessBoardPosition, ChessPiece> getPieces() {
-        return pieces;
+        return (Map<ChessBoardPosition, ChessPiece>) pieces.clone();
     }
 
     public int getPiecesCount() {
