@@ -1,16 +1,12 @@
 package org.pxf.model;
 
 public class ChessBoardPosition {
-    final int row;
-    final int col;
+    public final int row;
+    public final int col;
 
     public ChessBoardPosition(int row, int col) {
         this.row = row;
         this.col = col;
-    }
-    ChessBoardPosition(ChessBoardPosition position) {
-        this.row = position.row;
-        this.col = position.col;
     }
 
     @Override

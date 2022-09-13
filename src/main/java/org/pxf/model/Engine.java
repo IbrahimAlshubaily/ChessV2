@@ -3,9 +3,11 @@ package org.pxf.model;
 import org.pxf.controller.MinMax;
 
 import java.util.List;
+import java.util.Map;
 
 public class Engine {
     private final ChessBoard chessBoard = new ChessBoard();
+    private Team currPlayerTurn = Team.BLACK;
     public boolean isGameOver() {
         return chessBoard.isGameOver();
     }
@@ -37,6 +39,10 @@ public class Engine {
             System.out.println(getBoardRepr());
         }
     }
+    public void move(ChessPiece piece, ChessBoardPosition newPosition){
+        if (chessBoard.move(piece, newPosition))
+            currPlayerTurn = getOpponent(currPlayerTurn);
+    }
 
     public String getBoardRepr(){
         return chessBoard.toString();
@@ -54,5 +60,19 @@ public class Engine {
             return new Pawn(team);
         }
         return null;
+    }
+
+    public ChessPiece getChessPiece(ChessBoardPosition position) {
+        if (chessBoard.getPiece(position).getTeam() == currPlayerTurn){
+            return chessBoard.getPiece(position);
+        }
+        return null;
+    }
+    private Team getOpponent(Team team){
+        return team == Team.BLACK? Team.WHITE : Team.BLACK;
+    }
+
+    public Map<ChessBoardPosition, ChessPiece> getChessPieces() {
+        return chessBoard.getPieces();
     }
 }

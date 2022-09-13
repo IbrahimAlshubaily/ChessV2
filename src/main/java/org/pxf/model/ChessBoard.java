@@ -67,6 +67,13 @@ public class ChessBoard {
         return !isEmpty(move.destination) &&
                 pieces.get(move.source).getTeam() != pieces.get(move.destination).getTeam();
     }
+    ChessPiece getPiece(ChessBoardPosition position){
+        return pieces.get(position);
+    }
+    Map<ChessBoardPosition, ChessPiece> getPieces() {
+        return pieces;
+    }
+
     public int getPiecesCount() {
         return pieces.size();
     }
@@ -77,14 +84,13 @@ public class ChessBoard {
         return getTeamStream(team).flatMapToInt(
                 (entry) -> IntStream.of(entry.getValue().getHeuristicValue())).sum();
     }
-
     private Stream<Entry<ChessBoardPosition, ChessPiece>> getTeamStream(Team team){
         return pieces.entrySet().stream().filter((entry) -> entry.getValue().getTeam() == team);
     }
+
     public List<ChessBoardMove> getMoves(ChessPiece piece) {
         return piece.getMoves(this, getPiecePosition(piece));
     }
-
     public ArrayList<ChessBoardMove> getMoves(Team team) {
         ArrayList<ChessBoardMove> moves = getTeamStream(team)
                 .map((entry) -> entry.getValue().getMoves(this, entry.getKey()))
@@ -98,6 +104,15 @@ public class ChessBoard {
         return pieces.entrySet().parallelStream()
                 .filter(entry -> entry.getValue().equals(piece))
                 .map(Entry::getKey).iterator().next();
+    }
+    public boolean move(ChessPiece piece, ChessBoardPosition newPosition) {
+        ChessBoardPosition currPosition = getPiecePosition(piece);
+        ChessBoardMove move = new ChessBoardMove(currPosition, newPosition);
+        if (piece.getMoves(this, currPosition).contains(move)){
+            move(move);
+            return true;
+        }
+        return false;
     }
 
     public void move(ChessBoardMove move) {
