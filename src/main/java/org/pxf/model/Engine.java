@@ -2,6 +2,7 @@ package org.pxf.model;
 
 import org.pxf.controller.MinMax;
 
+import javax.swing.*;
 import java.util.List;
 import java.util.Map;
 
@@ -37,6 +38,19 @@ public class Engine {
             if (!isGameOver())
                 chessBoard.move(MinMax.getBestMove(chessBoard, Team.BLACK, searchDepth));
             System.out.println(getBoardRepr());
+        }
+    }
+    public void minMaxRollout(JPanel panel) {
+        int searchDepth = 3;
+        //int sleepDurationSeconds = 3;
+        while(!isGameOver()){
+            //TimeUnit.SECONDS.sleep(sleepDurationSeconds);
+            System.out.println(getPiecesCount("player 1")  +" Vs. " + getPiecesCount("player 2"));
+            chessBoard.move(MinMax.getBestMove(chessBoard, Team.BLACK, searchDepth));
+            panel.repaint();
+            if (!isGameOver())
+                chessBoard.move(MinMax.getBestMove(chessBoard, Team.WHITE, searchDepth));
+            panel.repaint();
         }
     }
     public void move(ChessPiece piece, ChessBoardPosition newPosition){
