@@ -1,26 +1,32 @@
 package org.pxf.view;
 
+import org.pxf.model.ChessBoard;
 import org.pxf.model.ChessBoardPosition;
 import org.pxf.model.ChessPiece;
 import org.pxf.model.Engine;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.util.Map;
+import java.util.ArrayList;
 
 class GUI extends JPanel{
     private static final int BOARD_SIZE = 8;
     private static final int GRID_CELL_SIZE = 50;
     private final Engine engine = new Engine();
     private ChessPiece selected = null;
+    private ArrayList<ChessBoard> currEpisode;
+    private int currBoardIdx = 0;
     public GUI(){
         engine.initPieces();
         //addMouseListener(getMouseListener());
-        new Thread(() -> engine.minMaxRollout(this)).start();
+        currEpisode = engine.rollOut( 3, 32);
+        System.out.println("X");
     }
+
 
     @Override
     protected void paintComponent(Graphics g) {
@@ -40,12 +46,13 @@ class GUI extends JPanel{
     }
 
     private void drawPieces(Graphics g) {
+        if (currEpisode == null)
+            return;
+
         int pad = GRID_CELL_SIZE / 3;
-        for (Map.Entry<ChessBoardPosition, ChessPiece> entry : engine.getChessPieces().entrySet()){
-            ChessPiece piece = entry.getValue();
-            ChessBoardPosition position = entry.getKey();
-            g.drawString(piece.toString(), position.col * GRID_CELL_SIZE + pad, position.row * GRID_CELL_SIZE + pad);
-        }
+        currEpisode.get(currBoardIdx).getPieces().forEach( (position, piece) -> g.drawString(piece.toString(),
+                                                                position.col * GRID_CELL_SIZE + pad,
+                                                                position.row * GRID_CELL_SIZE + pad));
     }
     private MouseListener getMouseListener() {
         return new MouseAdapter() {
@@ -64,6 +71,16 @@ class GUI extends JPanel{
             }
         };
     }
+    private ActionListener getButtonListener(){
+        return e -> {
+            if (e.getActionCommand().equalsIgnoreCase("next") && currBoardIdx < currEpisode.size() - 1){
+                this.currBoardIdx++;
+            }else if (e.getActionCommand().equalsIgnoreCase("prev") && currBoardIdx > 0){
+                this.currBoardIdx--;
+            }
+            repaint();
+        };
+    }
 
     private static void createAndShowGui() {
         JFrame frame = new JFrame("GUI");
@@ -72,6 +89,15 @@ class GUI extends JPanel{
         frame.setSize(frameSize, frameSize);
 
         GUI mainPanel = new GUI();
+
+        JButton next = new JButton("Next");
+        JButton prev = new JButton("Prev");
+        ActionListener buttonListener = mainPanel.getButtonListener();
+        next.addActionListener(buttonListener);
+        prev.addActionListener(buttonListener);
+        mainPanel.add(prev);
+        mainPanel.add(next);
+
         frame.getContentPane().add(mainPanel);
         frame.setVisible(true);
     }

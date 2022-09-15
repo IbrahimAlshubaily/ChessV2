@@ -9,16 +9,20 @@ import java.util.stream.Stream;
 public class ChessBoard {
     private static final int BOARD_SIZE = 8;
     private boolean gameOver = false;
-    private final HashMap<ChessBoardPosition, ChessPiece> pieces;
+    private Team winner = null;
+    private HashMap<ChessBoardPosition, ChessPiece> pieces;
 
     public ChessBoard(){
         this.pieces = new HashMap<>();
     }
-    public ChessBoard(HashMap<ChessBoardPosition, ChessPiece> pieces) {
-        this.pieces = pieces;
+    @SuppressWarnings("unchecked")
+    public ChessBoard(ChessBoard board) {
+        this.pieces = (HashMap<ChessBoardPosition, ChessPiece>) board.pieces.clone();
+        this.gameOver = board.gameOver;
+        this.winner = board.winner;
     }
-
     void initPieces() {
+        pieces = new HashMap<>();
         initFirstRow(Team.WHITE, 0);
         initPawns(Team.WHITE, 1);
 
@@ -50,6 +54,7 @@ public class ChessBoard {
 
     public boolean isGameOver() { return gameOver; }
 
+    public Team getWinner() { return winner;   }
     boolean isValidMove(ChessBoardMove move) {
         return !isEmpty(move.source) &&
                 isInBounds(move.destination) &&
@@ -59,10 +64,10 @@ public class ChessBoard {
         return 0 <= position.row && position.row < BOARD_SIZE
                 && 0 <= position.col && position.col < BOARD_SIZE;
     }
+
     boolean isEmpty(ChessBoardPosition position){
         return !pieces.containsKey(position);
     }
-
     boolean isOpponent(ChessBoardMove move) {
         return !isEmpty(move.destination) &&
                 pieces.get(move.source).getTeam() != pieces.get(move.destination).getTeam();
@@ -70,8 +75,9 @@ public class ChessBoard {
     ChessPiece getPiece(ChessBoardPosition position){
         return pieces.get(position);
     }
-    Map<ChessBoardPosition, ChessPiece> getPieces() {
-        return (Map<ChessBoardPosition, ChessPiece>) pieces.clone();
+
+    public Map<ChessBoardPosition, ChessPiece> getPieces() {
+        return pieces;
     }
 
     public int getPiecesCount() {
@@ -79,15 +85,14 @@ public class ChessBoard {
     }
 
     public int getPiecesCount(Team team) { return (int) getTeamStream(team).count();}
-
     public int getPiecesHeuristicValue(Team team) {
         return getTeamStream(team).flatMapToInt(
                 (entry) -> IntStream.of(entry.getValue().getHeuristicValue())).sum();
     }
+
     private Stream<Entry<ChessBoardPosition, ChessPiece>> getTeamStream(Team team){
         return pieces.entrySet().stream().filter((entry) -> entry.getValue().getTeam() == team);
     }
-
     public List<ChessBoardMove> getMoves(ChessPiece piece) {
         return piece.getMoves(this, getPiecePosition(piece));
     }
@@ -105,6 +110,7 @@ public class ChessBoard {
                 .filter(entry -> entry.getValue().equals(piece))
                 .map(Entry::getKey).iterator().next();
     }
+
     public boolean move(ChessPiece piece, ChessBoardPosition newPosition) {
         ChessBoardPosition currPosition = getPiecePosition(piece);
         ChessBoardMove move = new ChessBoardMove(currPosition, newPosition);
@@ -116,13 +122,24 @@ public class ChessBoard {
     }
 
     public void move(ChessBoardMove move) {
-        if (pieces.containsKey(move.destination) && pieces.get(move.destination).isKing())
+
+        if (pieces.containsKey(move.destination) && pieces.get(move.destination).isKing()) {
             gameOver = true;
+            winner = pieces.get(move.source).getTeam();
+        }
+
+
         pieces.put(move.destination, pieces.remove(move.source));
+        if (pieces.get(move.destination).isPawn()){
+            ChessPiece pawn = pieces.get(move.destination);
+            if ((move.destination.row == 0 && pawn.getTeam() == Team.BLACK) ||
+                        (move.destination.row == BOARD_SIZE-1 && pawn.getTeam() == Team.WHITE))
+                pieces.put(move.destination, new Queen(pawn.getTeam()));
+        }
     }
 
     public ChessBoard parallelMove(ChessBoardMove move) {
-        ChessBoard newBoard = new ChessBoard((HashMap<ChessBoardPosition, ChessPiece>) pieces.clone());
+        ChessBoard newBoard = new ChessBoard(this);
         newBoard.move(move);
         return newBoard;
     }
@@ -146,6 +163,10 @@ public class ChessBoard {
         }
         sb.append("_".repeat(59)).append("\n");
         return sb.toString();
+    }
+
+    public ChessBoard copy() {
+        return new ChessBoard(this);
     }
 }
 

@@ -41,6 +41,8 @@ public abstract class ChessPiece {
 
     public Team getTeam() { return team; }
     public boolean isKing() { return repr.equalsIgnoreCase("K"); }
+    public boolean isPawn() { return repr.equalsIgnoreCase("P"); }
+
     @Override
     public String toString() { return " " + team.toString().charAt(0) + repr.toUpperCase() + " "; }
 

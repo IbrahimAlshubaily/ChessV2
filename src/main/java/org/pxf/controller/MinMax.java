@@ -8,32 +8,39 @@ import java.util.Comparator;
 import java.util.NoSuchElementException;
 
 public class MinMax {
-    public static ChessBoardMove getBestMove(ChessBoard board, Team playerOneTeam, int depth) {
-        return board.getMoves(playerOneTeam)
+    private final int searchDepth;
+    final Team team;
+
+    public MinMax(Team team, int searchDepth){
+        this.searchDepth = searchDepth;
+        this.team = team;
+    }
+    public ChessBoardMove getBestMove(ChessBoard board) {
+        return board.getMoves(team)
                 .parallelStream()
-                .max(Comparator.comparing(move -> min(board.parallelMove(move), playerOneTeam, depth - 1)))
+                .max(Comparator.comparing(move -> min(board.parallelMove(move), searchDepth - 1)))
                 .orElseThrow(NoSuchElementException::new);
     }
-    private static int min(ChessBoard board, Team playerOneTeam, int depth ){
+    private int min(ChessBoard board, int depth){
         if (board.isGameOver() || depth == 0)
-            return eval(board, playerOneTeam);
-        return board.getMoves(getOpponent(playerOneTeam))
+            return eval(board);
+        return board.getMoves(getOpponent(team))
                 .parallelStream()
-                .mapToInt((move) -> max(board.parallelMove(move), playerOneTeam, depth - 1))
+                .mapToInt((move) -> max(board.parallelMove(move), depth - 1))
                 .min().orElseThrow(NoSuchElementException::new);
     }
-    private static int max(ChessBoard board, Team playerOneTeam, int depth ){
+    private int max(ChessBoard board, int depth ){
         if (board.isGameOver() || depth == 0)
-            return eval(board, playerOneTeam);
-        return board.getMoves(playerOneTeam)
+            return eval(board);
+        return board.getMoves(team)
                 .parallelStream()
-                .mapToInt((move) -> min(board.parallelMove(move), playerOneTeam, depth - 1))
+                .mapToInt((move) -> min(board.parallelMove(move), depth - 1))
                 .max().orElseThrow(NoSuchElementException::new);
     }
-    private static int eval(ChessBoard board, Team team) {
+    private int eval(ChessBoard board) {
         return board.getPiecesHeuristicValue(team) - board.getPiecesHeuristicValue(getOpponent(team));
     }
-    private static Team getOpponent(Team team) {
+    private Team getOpponent(Team team) {
         return team == Team.WHITE? Team.BLACK: Team.WHITE;
     }
 }
