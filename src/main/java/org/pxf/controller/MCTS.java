@@ -9,25 +9,29 @@ import java.util.Comparator;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static java.util.stream.IntStream.range;
-
 public class MCTS {
-    private int nSamples;
+    private final int nSamples;
     public final Team team;
+    private final LRUCache cache;
+
     public MCTS(Team team, int nSamples){
         this.team = team;
         this.nSamples = nSamples;
+        this.cache = new LRUCache(0);
+
     }
     public ChessBoardMove getBestMove(ChessBoard board) {
-        nSamples = Math.min(nSamples * 2, 512);
-        System.out.println(nSamples);
         return board.getMoves(team)
                 .parallelStream()
                 .max(Comparator.comparing(move -> randomWalk(board.parallelMove(move))))
                 .orElseThrow(NoSuchElementException::new);
     }
     private int randomWalk(ChessBoard board) {
-        return range(0, nSamples).parallel().map((i) -> randomWalk(board, getOpponent(team))).sum();
+        int score = 0;
+        for (int i = 0; i < nSamples; i++){
+            score += randomWalk(board, getOpponent(team));
+        }
+        return score;
     }
     private int randomWalk(ChessBoard board, Team team) {
         if (board.isGameOver())
@@ -39,7 +43,7 @@ public class MCTS {
         return moves.get(ThreadLocalRandom.current().nextInt(moves.size()));
     }
     private int eval(ChessBoard board) {
-        return board.getWinner() == this.team ? 1 : 0;
+        return board.getWinner() == this.team ? 1 : -1;
     }
     private static Team getOpponent(Team team) {
         return team == Team.WHITE? Team.BLACK: Team.WHITE;

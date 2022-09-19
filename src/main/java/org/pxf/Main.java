@@ -4,8 +4,8 @@ import org.pxf.model.Engine;
 
 public class Main {
     public static void main(String[] args) {
-        int sampleSize = 3;
-        experiment(3, 1_000, sampleSize);
+        //int sampleSize = 3;
+        //experiment(3, 1_000, sampleSize);
         //experiment(3, 5_00, sampleSize);
         //experiment(3, 10_00, sampleSize);
 

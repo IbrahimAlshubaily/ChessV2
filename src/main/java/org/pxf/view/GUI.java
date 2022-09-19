@@ -18,13 +18,12 @@ class GUI extends JPanel{
     private static final int GRID_CELL_SIZE = 50;
     private final Engine engine = new Engine();
     private ChessPiece selected = null;
-    private ArrayList<ChessBoard> currEpisode;
+    private final ArrayList<ChessBoard> currEpisode;
     private int currBoardIdx = 0;
     public GUI(){
         engine.initPieces();
         //addMouseListener(getMouseListener());
-        currEpisode = engine.rollOut( 3, 32);
-        System.out.println("X");
+        currEpisode = engine.rollOut( 3, 128);
     }
 
 

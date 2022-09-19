@@ -88,30 +88,4 @@ public class Engine {
         }
         return chessBoard.getWinner() == player1.team ? 1 : 0;
     }
-
-
-    /*public void minMaxRollout() {
-        int searchDepth = 3;
-        MCTS mctsAgent = new MCTS(Team.WHITE, nSamples);
-        MinMax minMaxAgent = new MinMax(Team.BLACK);
-        while(!isGameOver()){
-            System.out.println(getPiecesCount());
-            chessBoard.move(MinMax.getBestMove(chessBoard, Team.WHITE, searchDepth));
-            if (!isGameOver())
-                chessBoard.move(MinMax.getBestMove(chessBoard, Team.BLACK, searchDepth));
-            System.out.println(getBoardRepr());
-        }
-    }
-    public void minMaxRollout(JPanel panel) {
-        //int sleepDurationSeconds = 3;
-        while(!isGameOver()){
-            //TimeUnit.SECONDS.sleep(sleepDurationSeconds);
-            System.out.println(getPiecesCount("player 1")  +" Vs. " + getPiecesCount("player 2"));
-            chessBoard.move(MinMax.getBestMove(chessBoard, Team.BLACK, 3));
-            panel.repaint();
-            if (!isGameOver())
-                chessBoard.move(MCTS.getBestMove(chessBoard, Team.WHITE, 10_000));
-            panel.repaint();
-        }
-    }*/
 }
