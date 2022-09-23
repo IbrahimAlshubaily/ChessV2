@@ -8,7 +8,7 @@ import java.util.List;
 
 public class Engine {
     private final ChessBoard chessBoard = new ChessBoard();
-    private Team currPlayerTurn = Team.BLACK;
+    MinMax minMaxAgent = new MinMax(Team.WHITE, 3);
     public boolean isGameOver() {
         return chessBoard.isGameOver();
     }
@@ -30,9 +30,16 @@ public class Engine {
         chessBoard.addPiece(chessPiece, row, col);
     }
 
-    public void move(ChessPiece piece, ChessBoardPosition newPosition){
-        if (chessBoard.move(piece, newPosition))
-            currPlayerTurn = getOpponent(currPlayerTurn);
+    public boolean move(ChessPiece piece, ChessBoardPosition newPosition){
+        if (chessBoard.isValidMove(piece, newPosition)){
+            chessBoard.move(piece, newPosition);
+            return true;
+        }
+        return false;
+    }
+
+    public ChessBoard getBoard() {
+        return chessBoard.copy();
     }
     public String getBoardRepr(){
         return chessBoard.toString();
@@ -53,7 +60,7 @@ public class Engine {
         return null;
     }
     public ChessPiece getChessPiece(ChessBoardPosition position) {
-        if (chessBoard.getPiece(position).getTeam() == currPlayerTurn){
+        if (chessBoard.getPiece(position).getTeam() == Team.BLACK){
             return chessBoard.getPiece(position);
         }
         return null;
@@ -63,11 +70,15 @@ public class Engine {
         return team == Team.BLACK? Team.WHITE : Team.BLACK;
     }
 
+    public ChessBoard minMaxStep() {
+        chessBoard.move(minMaxAgent.getBestMove(chessBoard));
+        return getBoard();
+    }
 
     public ArrayList<ChessBoard> rollOut(int minMaxDepth, int mcts_nSamples) {
         ArrayList<ChessBoard> episode = new ArrayList<>(64);
         MCTS mctsAgent = new MCTS(Team.WHITE, mcts_nSamples);
-        MinMax minMaxAgent = new MinMax(Team.BLACK, minMaxDepth);
+
         while(!isGameOver()){
             System.out.println(chessBoard.score());
             chessBoard.move(minMaxAgent.getBestMove(chessBoard));
@@ -78,6 +89,8 @@ public class Engine {
         }
         return episode;
     }
+
+
 
     public int rollOutScore(int minMaxDepth, int mcts_nSamples) {
         MCTS player1 = new MCTS(Team.WHITE, mcts_nSamples);

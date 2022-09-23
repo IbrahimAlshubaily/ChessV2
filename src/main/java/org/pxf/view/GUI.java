@@ -22,8 +22,9 @@ class GUI extends JPanel{
     private int currBoardIdx = 0;
     public GUI(){
         engine.initPieces();
-        //addMouseListener(getMouseListener());
-        currEpisode = engine.rollOut( 3, 102400);
+        addMouseListener(getMouseListener());
+        currEpisode = new ArrayList<>();
+        currEpisode.add(engine.getBoard());
     }
 
 
@@ -45,6 +46,7 @@ class GUI extends JPanel{
     }
 
     private void drawPieces(Graphics g) {
+        System.out.println(currBoardIdx);
         if (currEpisode == null)
             return;
 
@@ -63,9 +65,13 @@ class GUI extends JPanel{
                     selected = engine.getChessPiece(position);
                     System.out.println("Selected : "+ selected);
                 }else{
-                    engine.move(selected, position);
+                    if (engine.move(selected, position)){
+                        currEpisode.add(engine.getBoard());
+                        repaint();
+                        currEpisode.add(engine.minMaxStep());
+                        currBoardIdx+=2;
+                    }
                     selected = null;
-                    repaint();
                 }
             }
         };

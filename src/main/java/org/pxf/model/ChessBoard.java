@@ -60,6 +60,11 @@ public class ChessBoard {
                 isInBounds(move.destination) &&
                 (isEmpty(move.destination) || isOpponent(move));
     }
+
+    boolean isValidMove(ChessPiece piece, ChessBoardPosition newPosition) {
+        ChessBoardPosition currPosition = getPiecePosition(piece);
+        return  piece.getMoves(this, currPosition).contains(new ChessBoardMove(currPosition, newPosition));
+    }
     boolean isInBounds(ChessBoardPosition position) {
         return 0 <= position.row && position.row < BOARD_SIZE
                 && 0 <= position.col && position.col < BOARD_SIZE;
