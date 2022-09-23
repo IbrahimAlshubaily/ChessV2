@@ -23,7 +23,7 @@ public class MinMax {
     }
     private int min(ChessBoard board, int depth){
         if (board.isGameOver() || depth == 0)
-            return eval(board);
+            return board.eval(team);
         return board.getMoves(getOpponent(team))
                 .parallelStream()
                 .mapToInt((move) -> max(board.parallelMove(move), depth - 1))
@@ -31,15 +31,13 @@ public class MinMax {
     }
     private int max(ChessBoard board, int depth ){
         if (board.isGameOver() || depth == 0)
-            return eval(board);
+            return board.eval(team);
         return board.getMoves(team)
                 .parallelStream()
                 .mapToInt((move) -> min(board.parallelMove(move), depth - 1))
                 .max().orElseThrow(NoSuchElementException::new);
     }
-    private int eval(ChessBoard board) {
-        return board.getPiecesHeuristicValue(team) - board.getPiecesHeuristicValue(getOpponent(team));
-    }
+
     private Team getOpponent(Team team) {
         return team == Team.WHITE? Team.BLACK: Team.WHITE;
     }

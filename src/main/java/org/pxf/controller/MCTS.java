@@ -10,41 +10,53 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class MCTS {
-    private final int nSamples;
     public final Team team;
-    private final LRUCache cache;
+    private final int nSamples;
+    //private final LRUCache cache;
 
     public MCTS(Team team, int nSamples){
         this.team = team;
         this.nSamples = nSamples;
-        this.cache = new LRUCache(0);
+        //this.cache = new LRUCache(1024 * 1024);
 
     }
+
     public ChessBoardMove getBestMove(ChessBoard board) {
+        int depth = 5;
         return board.getMoves(team)
                 .parallelStream()
-                .max(Comparator.comparing(move -> randomWalk(board.parallelMove(move))))
+                .max(Comparator.comparing(move -> randomWalk(board.parallelMove(move), depth)))
                 .orElseThrow(NoSuchElementException::new);
     }
-    private int randomWalk(ChessBoard board) {
-        int score = 0;
+
+    private float randomWalk(ChessBoard board, int depth) {
+        float score = 0;
         for (int i = 0; i < nSamples; i++){
-            score += randomWalk(board, getOpponent(team));
+            score += randomWalk(board, getOpponent(team), depth - 1);
         }
         return score;
     }
-    private int randomWalk(ChessBoard board, Team team) {
-        if (board.isGameOver())
+
+    private float randomWalk(ChessBoard board, Team team, int depth) {
+        if (depth == 0 || board.isGameOver()) {
             return eval(board);
-        return randomWalk(board.parallelMove(getRandomMove(board, team)), getOpponent(team));
+        }
+        ChessBoard nextBoard = board.parallelMove(getRandomMove(board, team));
+        return randomWalk(nextBoard, getOpponent(team), depth - 1);
+        //float winRatio =  randomWalk(nextBoard, getOpponent(team), depth - 1);
+        //cache.put(nextBoard, winRatio);
+        //return cache.get(nextBoard);
     }
+
     private ChessBoardMove getRandomMove(ChessBoard board, Team team){
         ArrayList<ChessBoardMove> moves = board.getMoves(team);
         return moves.get(ThreadLocalRandom.current().nextInt(moves.size()));
     }
+
     private int eval(ChessBoard board) {
-        return board.getWinner() == this.team ? 1 : -1;
+        return board.getWinner() == this.team ? 1 : 0;
     }
+
     private static Team getOpponent(Team team) {
         return team == Team.WHITE? Team.BLACK: Team.WHITE;
     }

@@ -1,5 +1,7 @@
 package org.pxf.controller;
 
+import org.pxf.model.ChessBoard;
+
 import java.util.HashMap;
 
 public class LRUCache {
@@ -13,33 +15,35 @@ public class LRUCache {
         cache = new HashMap<>(capacity);
     }
 
-    public int get(int key) {
-        if (cache.containsKey(key)) {
-            Node node = cache.get(key);
+    public float get(ChessBoard key) {
+        if (cache.containsKey(key.hashCode())) {
+            Node node = cache.get(key.hashCode());
             detach(node);
             prepend(node);
-            return node.value;
+            return node.winRatio();
         }
-        return -1;
+        return 0;
     }
 
-    public void put(int key, int value) {
+    public void put(ChessBoard key, float isWin) {
 
-        if (cache.containsKey(key)) {
-            Node node = cache.get(key);
-            node.value = value;
+        if (cache.containsKey(key.hashCode())) {
+            Node node = cache.get(key.hashCode());
+            node.value.nWins += isWin;
+            node.value.nSamples += 1;
             detach(node);
             prepend(node);
             return;
         }
 
-        if (cache.size() == capacity) {
+        if (cache.size() == capacity - 1) {
+            //System.out.println(cache.size());
             this.cache.remove(tail.key);
             detach(tail);
         }
 
-        Node newNode = new Node(key, value);
-        cache.put(newNode.key, newNode);
+        Node newNode = new Node(key.hashCode(), isWin, 1);
+        cache.put(key.hashCode(), newNode);
         prepend(newNode);
     }
 
@@ -87,13 +91,26 @@ public class LRUCache {
     }
 
     class Node {
-        int key, value;
+        int key;
+        Sample value;
         Node prev, next;
-        Node(int key, int value) {
+        Node(int key, float nWins, int nSamples) {
             this.key = key;
-            this.value = value;
+            this.value = new Sample(nWins, nSamples);
             prev = next = null;
         }
+        float winRatio() {
+            return value.nWins / value.nSamples;
+        }
+        class Sample {
+            float nWins;
+            int nSamples;
+            Sample(float nWins, int nSamples) {
+                this.nWins = nWins;
+                this.nSamples = nSamples;
+            }
+        }
     }
+
 }
 

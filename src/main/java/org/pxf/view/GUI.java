@@ -23,7 +23,7 @@ class GUI extends JPanel{
     public GUI(){
         engine.initPieces();
         //addMouseListener(getMouseListener());
-        currEpisode = engine.rollOut( 3, 128);
+        currEpisode = engine.rollOut( 3, 102400);
     }
 
 

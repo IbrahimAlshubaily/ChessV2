@@ -69,6 +69,7 @@ public class Engine {
         MCTS mctsAgent = new MCTS(Team.WHITE, mcts_nSamples);
         MinMax minMaxAgent = new MinMax(Team.BLACK, minMaxDepth);
         while(!isGameOver()){
+            System.out.println(chessBoard.score());
             chessBoard.move(minMaxAgent.getBestMove(chessBoard));
             episode.add(chessBoard.copy());
             if (!isGameOver())

@@ -168,5 +168,18 @@ public class ChessBoard {
     public ChessBoard copy() {
         return new ChessBoard(this);
     }
+
+    public String score() {
+        int wScore = getPiecesHeuristicValue(Team.WHITE);
+        int bScore = getPiecesHeuristicValue(Team.BLACK);
+        return (wScore - bScore) + " : " + (bScore - wScore);
+    }
+
+    public int eval(Team team) {
+        return this.getPiecesHeuristicValue(team) - this.getPiecesHeuristicValue(getOpponent(team));
+    }
+    private Team getOpponent(Team team) {
+        return team == Team.WHITE? Team.BLACK: Team.WHITE;
+    }
 }
 
