@@ -8,37 +8,32 @@ import java.util.Comparator;
 import java.util.NoSuchElementException;
 
 public class MinMax {
+    public final Team team;
     private final int searchDepth;
-    final Team team;
 
     public MinMax(Team team, int searchDepth){
         this.searchDepth = searchDepth;
         this.team = team;
     }
+
     public ChessBoardMove getBestMove(ChessBoard board) {
         return board.getMoves(team)
-                .parallelStream()
-                .max(Comparator.comparing(move -> min(board.parallelMove(move), searchDepth - 1)))
+                .parallel()
+                .max(Comparator.comparing(move -> min(board.moveWithoutMutating(move), searchDepth - 1)))
                 .orElseThrow(NoSuchElementException::new);
     }
     private int min(ChessBoard board, int depth){
         if (board.isGameOver() || depth == 0)
             return board.eval(team);
-        return board.getMoves(getOpponent(team))
-                .parallelStream()
-                .mapToInt((move) -> max(board.parallelMove(move), depth - 1))
+        return board.getMoves(team.getOpponent())
+                .mapToInt((move) -> max(board.moveWithoutMutating(move), depth - 1))
                 .min().orElseThrow(NoSuchElementException::new);
     }
     private int max(ChessBoard board, int depth ){
         if (board.isGameOver() || depth == 0)
             return board.eval(team);
         return board.getMoves(team)
-                .parallelStream()
-                .mapToInt((move) -> min(board.parallelMove(move), depth - 1))
+                .mapToInt((move) -> min(board.moveWithoutMutating(move), depth - 1))
                 .max().orElseThrow(NoSuchElementException::new);
-    }
-
-    private Team getOpponent(Team team) {
-        return team == Team.WHITE? Team.BLACK: Team.WHITE;
     }
 }

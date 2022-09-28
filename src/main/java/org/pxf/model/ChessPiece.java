@@ -2,9 +2,8 @@ package org.pxf.model;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Collections;
+import java.util.stream.Stream;
 
 public abstract class ChessPiece {
     private final Team team;
@@ -21,13 +20,11 @@ public abstract class ChessPiece {
         this.heuristicValue = heuristicValue;
     }
 
-    public List<ChessBoardMove> getMoves(ChessBoard board, ChessBoardPosition currPosition){
-        return Arrays.stream(this.directions).parallel()
-                .map((dir) -> getMovesInDirection(board, currPosition, dir))
-                .flatMap(Collection::stream)
-                .collect(Collectors.toList());
+    public Stream<ChessBoardMove> getMoves(ChessBoard board, ChessBoardPosition currPosition){
+        return Arrays.stream(this.directions)
+                .flatMap((dir) -> getMovesInDirection(board, currPosition, dir));
     }
-    private ArrayList<ChessBoardMove> getMovesInDirection(ChessBoard board, ChessBoardPosition currPosition, Direction dir){
+    private Stream<ChessBoardMove> getMovesInDirection(ChessBoard board, ChessBoardPosition currPosition, Direction dir){
         int nSteps = this.nSteps;
         ArrayList<ChessBoardMove> result = new ArrayList<>();
         ChessBoardMove currMove = new ChessBoardMove(currPosition, currPosition).step(dir);
@@ -36,29 +33,28 @@ public abstract class ChessPiece {
             if (board.isOpponent(currMove)) break;
             currMove = currMove.step(dir);
         }
-        return result;
+        Collections.shuffle(result);
+        return result.stream();
     }
 
     public Team getTeam() { return team; }
     public boolean isKing() { return repr.equalsIgnoreCase("K"); }
     public boolean isPawn() { return repr.equalsIgnoreCase("P"); }
-
-    @Override
-    public String toString() { return " " + team.toString().charAt(0) + repr.toUpperCase() + " "; }
-
     public int getHeuristicValue() {
         return heuristicValue;
     }
+    @Override
+    public String toString() { return " " + team.toString().charAt(0) + repr.toUpperCase() + " "; }
 }
 
 class Queen extends ChessPiece{
-    Queen(Team team){ super(team, "Q", Direction.getQueenDirections(team), 8, 10); }
+    Queen(Team team){ super(team, "Q", Direction.getQueenDirections(team), 8, 100); }
 }
 class King extends ChessPiece{
     King(Team team){ super(team, "K", Direction.getQueenDirections(team), 1, Integer.MAX_VALUE / 2); }
 }
 class Knight extends ChessPiece{
-    Knight(Team team){ super(team, "N", Direction.getKnightDirections(team), 1, 5); }
+    Knight(Team team){ super(team, "N", Direction.getKnightDirections(team), 1, 3); }
 }
 class Bishop extends ChessPiece{
 
@@ -74,12 +70,13 @@ class Pawn extends ChessPiece{
         super(team, "P", null, 2, 1);
         this.directions = Direction.getPawnDirections(team);
     }
-    public List<ChessBoardMove> getMoves(ChessBoard board, ChessBoardPosition currPosition){
+    public Stream<ChessBoardMove> getMoves(ChessBoard board, ChessBoardPosition currPosition){
         ChessBoardMove baseMove = new ChessBoardMove(currPosition, currPosition);
         ArrayList<ChessBoardMove> result = getForwardMoves(board, baseMove, directions[0]);
         addDiagonalMove(board, baseMove.step(directions[1]), result);
         addDiagonalMove(board, baseMove.step(directions[2]), result);
-        return result;
+        Collections.shuffle(result);
+        return result.stream();
     }
 
     private ArrayList<ChessBoardMove> getForwardMoves(ChessBoard board, ChessBoardMove baseMove, Direction forward) {

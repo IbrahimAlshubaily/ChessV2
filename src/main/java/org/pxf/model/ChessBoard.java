@@ -1,19 +1,25 @@
 package org.pxf.model;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class ChessBoard {
     private static final int BOARD_SIZE = 8;
-    private boolean gameOver = false;
-    private Team winner = null;
+    private boolean gameOver;
+    private Team winner;
     private HashMap<ChessBoardPosition, ChessPiece> pieces;
 
     public ChessBoard(){
-        this.pieces = new HashMap<>();
+        reset();
+    }
+    public void reset() {
+        initPieces();
+        this.gameOver = false;
+        this.winner = null;
     }
     @SuppressWarnings("unchecked")
     public ChessBoard(ChessBoard board) {
@@ -31,39 +37,60 @@ public class ChessBoard {
     }
     private void initPawns(Team team, int row) {
         for (int col = 0; col < BOARD_SIZE; col++){
-            addPiece(new Pawn(team), row, col);
+            add(new Pawn(team), row, col);
         }
     }
     private void initFirstRow(Team team, int row) {
         int col = 0;
-        addPiece(new Rook(team), row, col++);
-        addPiece(new Bishop(team), row, col++);
-        addPiece(new Knight(team), row, col++);
-        addPiece(new Queen(team), row, col++);
-        addPiece(new King(team), row, col++);
-        addPiece(new Knight(team), row, col++);
-        addPiece(new Bishop(team), row, col++);
-        addPiece(new Rook(team), row, col);
+        add(new Rook(team), row, col++);
+        add(new Bishop(team), row, col++);
+        add(new Knight(team), row, col++);
+        add(new Queen(team), row, col++);
+        add(new King(team), row, col++);
+        add(new Knight(team), row, col++);
+        add(new Bishop(team), row, col++);
+        add(new Rook(team), row, col);
     }
-    void addPiece(ChessPiece piece, int row, int col){
+
+    void add(ChessPiece piece, int row, int col){
         ChessBoardPosition position = new ChessBoardPosition(row, col);
         if (isInBounds(position) && !pieces.containsKey(position)){
             pieces.put(position, piece);
         }
     }
 
+    void move(ChessBoardMove move) {
+
+        if (pieces.containsKey(move.destination) && pieces.get(move.destination).isKing()) {
+            gameOver = true;
+            winner = pieces.get(move.source).getTeam();
+        }
+
+        pieces.put(move.destination, pieces.remove(move.source));
+        if (pieces.get(move.destination).isPawn()){
+            ChessPiece pawn = pieces.get(move.destination);
+            if ((move.destination.row == 0 && pawn.getTeam() == Team.BLACK) ||
+                    (move.destination.row == 7 && pawn.getTeam() == Team.WHITE)){
+                pieces.put(move.destination, new Queen(pawn.getTeam()));
+            }
+        }
+    }
+
     public boolean isGameOver() { return gameOver; }
 
-    public Team getWinner() { return winner;   }
+    public Team getWinner() { return winner; }
+
     boolean isValidMove(ChessBoardMove move) {
         return !isEmpty(move.source) &&
                 isInBounds(move.destination) &&
                 (isEmpty(move.destination) || isOpponent(move));
     }
 
-    boolean isValidMove(ChessPiece piece, ChessBoardPosition newPosition) {
-        ChessBoardPosition currPosition = getPiecePosition(piece);
-        return  piece.getMoves(this, currPosition).contains(new ChessBoardMove(currPosition, newPosition));
+    boolean isValidMove(ChessBoardMove move, Team turn) {
+        ChessPiece piece = pieces.get(move.source);
+        if (piece.getTeam() == turn)
+            return  piece.getMoves(this, move.source).anyMatch(move::equals);
+        return false;
     }
     boolean isInBounds(ChessBoardPosition position) {
         return 0 <= position.row && position.row < BOARD_SIZE
@@ -73,80 +100,49 @@ public class ChessBoard {
     boolean isEmpty(ChessBoardPosition position){
         return !pieces.containsKey(position);
     }
+
     boolean isOpponent(ChessBoardMove move) {
         return !isEmpty(move.destination) &&
                 pieces.get(move.source).getTeam() != pieces.get(move.destination).getTeam();
-    }
-    ChessPiece getPiece(ChessBoardPosition position){
-        return pieces.get(position);
     }
 
     public Map<ChessBoardPosition, ChessPiece> getPieces() {
         return pieces;
     }
-
-    public int getPiecesCount() {
-        return pieces.size();
-    }
-
-    public int getPiecesCount(Team team) { return (int) getTeamStream(team).count();}
-    public int getPiecesHeuristicValue(Team team) {
-        return getTeamStream(team).flatMapToInt(
-                (entry) -> IntStream.of(entry.getValue().getHeuristicValue())).sum();
-    }
-
     private Stream<Entry<ChessBoardPosition, ChessPiece>> getTeamStream(Team team){
-        return pieces.entrySet().stream().filter((entry) -> entry.getValue().getTeam() == team);
-    }
-    public List<ChessBoardMove> getMoves(ChessPiece piece) {
-        return piece.getMoves(this, getPiecePosition(piece));
-    }
-    public ArrayList<ChessBoardMove> getMoves(Team team) {
-        ArrayList<ChessBoardMove> moves = getTeamStream(team)
-                .map((entry) -> entry.getValue().getMoves(this, entry.getKey()))
-                .flatMap(Collection::parallelStream)
-                .collect(Collectors.toCollection(ArrayList::new));
-        Collections.shuffle(moves);
-        return moves;
-    }
-    private ChessBoardPosition getPiecePosition(ChessPiece piece){
-        if (!pieces.containsValue(piece)) return null;
-        return pieces.entrySet().parallelStream()
-                .filter(entry -> entry.getValue().equals(piece))
-                .map(Entry::getKey).iterator().next();
+        return pieces.entrySet().stream()
+                .filter((entry) -> entry.getValue().getTeam() == team)
+                .collect(Collectors.collectingAndThen(
+                        Collectors.toList(),
+                        list -> {
+                            Collections.shuffle(list);
+                            return list;
+                        }
+                )).stream();
     }
 
-    public boolean move(ChessPiece piece, ChessBoardPosition newPosition) {
-        ChessBoardPosition currPosition = getPiecePosition(piece);
-        ChessBoardMove move = new ChessBoardMove(currPosition, newPosition);
-        if (piece.getMoves(this, currPosition).contains(move)){
-            move(move);
-            return true;
-        }
-        return false;
+    public Stream<ChessBoardMove> getMoves(Team team) {
+        return getTeamStream(team)
+                .flatMap((entry) -> entry.getValue().getMoves(this, entry.getKey()));
     }
 
-    public void move(ChessBoardMove move) {
-
-        if (pieces.containsKey(move.destination) && pieces.get(move.destination).isKing()) {
-            gameOver = true;
-            winner = pieces.get(move.source).getTeam();
-        }
-
-
-        pieces.put(move.destination, pieces.remove(move.source));
-        if (pieces.get(move.destination).isPawn()){
-            ChessPiece pawn = pieces.get(move.destination);
-            if ((move.destination.row == 0 && pawn.getTeam() == Team.BLACK) ||
-                        (move.destination.row == BOARD_SIZE-1 && pawn.getTeam() == Team.WHITE))
-                pieces.put(move.destination, new Queen(pawn.getTeam()));
-        }
-    }
-
-    public ChessBoard parallelMove(ChessBoardMove move) {
-        ChessBoard newBoard = new ChessBoard(this);
+    public ChessBoard moveWithoutMutating(ChessBoardMove move) {
+        ChessBoard newBoard = copy();
         newBoard.move(move);
         return newBoard;
+    }
+
+    public ChessBoard copy() {
+        return new ChessBoard(this);
+    }
+
+    public int eval(Team team) {
+        return this.getPiecesHeuristicValue(team) - this.getPiecesHeuristicValue(team.getOpponent());
+    }
+
+    private int getPiecesHeuristicValue(Team team) {
+        return getTeamStream(team).mapToInt(
+                (entry) -> entry.getValue().getHeuristicValue()).sum();
     }
 
     @Override
@@ -170,21 +166,7 @@ public class ChessBoard {
         return sb.toString();
     }
 
-    public ChessBoard copy() {
-        return new ChessBoard(this);
-    }
 
-    public String score() {
-        int wScore = getPiecesHeuristicValue(Team.WHITE);
-        int bScore = getPiecesHeuristicValue(Team.BLACK);
-        return (wScore - bScore) + " : " + (bScore - wScore);
-    }
 
-    public int eval(Team team) {
-        return this.getPiecesHeuristicValue(team) - this.getPiecesHeuristicValue(getOpponent(team));
-    }
-    private Team getOpponent(Team team) {
-        return team == Team.WHITE? Team.BLACK: Team.WHITE;
-    }
 }
 

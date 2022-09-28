@@ -1,38 +1,32 @@
 package org.pxf.model;
 
-import org.pxf.controller.MCTS;
 import org.pxf.controller.MinMax;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class Engine {
-    private final ChessBoard chessBoard = new ChessBoard();
-    MinMax minMaxAgent = new MinMax(Team.WHITE, 3);
+
+    private static final int MIN_MAX_SEARCH_DEPTH = 3;
+    private final ChessBoard  chessBoard;
+    private final MinMax playerOne;
+    private final MinMax playerTwo;
+
+    public Engine() {
+        chessBoard = new ChessBoard();
+        playerOne = new MinMax(Team.WHITE, MIN_MAX_SEARCH_DEPTH);
+        playerTwo = new MinMax(Team.BLACK, MIN_MAX_SEARCH_DEPTH);
+    }
+
     public boolean isGameOver() {
         return chessBoard.isGameOver();
     }
-
-    public int getPiecesCount() {
-        return chessBoard.getPiecesCount();
+    public void reset() {
+        chessBoard.reset();
     }
 
-    public int getPiecesCount(String player) {
-        return chessBoard.getPiecesCount(
-                player.equalsIgnoreCase("player 1") ? Team.BLACK : Team.WHITE);
-    }
-
-    public void initPieces(){
-        chessBoard.initPieces();
-    }
-
-    public void addPiece(ChessPiece chessPiece, int row, int col) {
-        chessBoard.addPiece(chessPiece, row, col);
-    }
-
-    public boolean move(ChessPiece piece, ChessBoardPosition newPosition){
-        if (chessBoard.isValidMove(piece, newPosition)){
-            chessBoard.move(piece, newPosition);
+    public boolean move(ChessBoardMove move, Team turn){
+        if (chessBoard.isValidMove(move, turn)){
+            chessBoard.move(move);
             return true;
         }
         return false;
@@ -41,65 +35,33 @@ public class Engine {
     public ChessBoard getBoard() {
         return chessBoard.copy();
     }
-    public String getBoardRepr(){
-        return chessBoard.toString();
-    }
 
-    public List<ChessBoardMove> getMoves(ChessPiece piece) {
-        return chessBoard.getMoves(piece);
+    public void minMaxStep(Team team) {
+        if (isGameOver()) return;
+        MinMax agent = team == playerOne.team ? playerOne : playerTwo;
+        chessBoard.move(agent.getBestMove(chessBoard));
     }
-
-    public ChessPiece getChessPiece() {
-        return new Pawn(Team.WHITE);
-    }
-
-    public ChessPiece getChessPiece(String pieceName, Team team) {
-        if (pieceName.equalsIgnoreCase("pawn")){
-            return new Pawn(team);
-        }
-        return null;
-    }
-    public ChessPiece getChessPiece(ChessBoardPosition position) {
-        if (chessBoard.getPiece(position).getTeam() == Team.BLACK){
-            return chessBoard.getPiece(position);
-        }
-        return null;
-    }
-
-    private Team getOpponent(Team team){
-        return team == Team.BLACK? Team.WHITE : Team.BLACK;
-    }
-
-    public ChessBoard minMaxStep() {
-        chessBoard.move(minMaxAgent.getBestMove(chessBoard));
-        return getBoard();
-    }
-
-    public ArrayList<ChessBoard> rollOut(int minMaxDepth, int mcts_nSamples) {
-        ArrayList<ChessBoard> episode = new ArrayList<>(64);
-        MCTS mctsAgent = new MCTS(Team.WHITE, mcts_nSamples);
-
+    public int rollOutScore() {
         while(!isGameOver()){
-            System.out.println(chessBoard.score());
-            chessBoard.move(minMaxAgent.getBestMove(chessBoard));
-            episode.add(chessBoard.copy());
-            if (!isGameOver())
-                chessBoard.move(mctsAgent.getBestMove(chessBoard));
+            minMaxStep(Team.WHITE);
+            minMaxStep(Team.BLACK);
+        }
+        return chessBoard.getWinner() == playerOne.team ? 1 : 0;
+    }
+
+    public ArrayList<ChessBoard> rollOut() {
+        ArrayList<ChessBoard> episode = new ArrayList<>(64);
+        while(!isGameOver()) {
+            minMaxStep(Team.WHITE);
+            minMaxStep(Team.BLACK);
             episode.add(chessBoard.copy());
         }
         return episode;
     }
 
-
-
-    public int rollOutScore(int minMaxDepth, int mcts_nSamples) {
-        MCTS player1 = new MCTS(Team.WHITE, mcts_nSamples);
-        MinMax player2 = new MinMax(Team.BLACK, minMaxDepth);
-        while(!isGameOver()){
-            chessBoard.move(player1.getBestMove(chessBoard));
-            if (!isGameOver())
-                chessBoard.move(player2.getBestMove(chessBoard));
-        }
-        return chessBoard.getWinner() == player1.team ? 1 : 0;
+    @Override
+    public String toString(){
+        return chessBoard.toString();
     }
+
 }

@@ -1,9 +1,6 @@
 package org.pxf.view;
 
-import org.pxf.model.ChessBoard;
-import org.pxf.model.ChessBoardPosition;
-import org.pxf.model.ChessPiece;
-import org.pxf.model.Engine;
+import org.pxf.model.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -16,15 +13,19 @@ import java.util.ArrayList;
 class GUI extends JPanel{
     private static final int BOARD_SIZE = 8;
     private static final int GRID_CELL_SIZE = 50;
-    private final Engine engine = new Engine();
-    private ChessPiece selected = null;
+    private final Engine engine;
+    private ChessBoardPosition selectedPosition;
     private final ArrayList<ChessBoard> currEpisode;
-    private int currBoardIdx = 0;
+    private int currBoardIdx;
     public GUI(){
-        engine.initPieces();
-        addMouseListener(getMouseListener());
+        engine = new Engine();
+        selectedPosition = null;
+
         currEpisode = new ArrayList<>();
         currEpisode.add(engine.getBoard());
+        currBoardIdx = 0;
+
+        addMouseListener(getMouseListener());
     }
 
 
@@ -52,30 +53,40 @@ class GUI extends JPanel{
 
         int pad = GRID_CELL_SIZE / 3;
         currEpisode.get(currBoardIdx).getPieces().forEach( (position, piece) -> g.drawString(piece.toString(),
-                                                                position.col * GRID_CELL_SIZE + pad,
-                                                                position.row * GRID_CELL_SIZE + pad));
+                                                                             position.col * GRID_CELL_SIZE + pad,
+                                                                             position.row * GRID_CELL_SIZE + pad));
     }
     private MouseListener getMouseListener() {
         return new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
-                int row = e.getY() / GRID_CELL_SIZE;
-                int col = e.getX() / GRID_CELL_SIZE;
-                ChessBoardPosition position = new ChessBoardPosition(row, col);
-                if (selected == null){
-                    selected = engine.getChessPiece(position);
-                    System.out.println("Selected : "+ selected);
+                ChessBoardPosition newPosition = parsePosition(e);
+                if (selectedPosition == null){
+                    selectedPosition = newPosition;
                 }else{
-                    if (engine.move(selected, position)){
-                        currEpisode.add(engine.getBoard());
-                        repaint();
-                        currEpisode.add(engine.minMaxStep());
-                        currBoardIdx+=2;
-                    }
-                    selected = null;
+                    moveSelectedPosition(newPosition);
+                    selectedPosition = null;
+                    currBoardIdx+=2;
                 }
+                repaint();
             }
         };
     }
+
+    private void moveSelectedPosition(ChessBoardPosition newPosition) {
+        ChessBoardMove move = new ChessBoardMove(selectedPosition, newPosition);
+        if (engine.move(move, Team.BLACK)) {
+            currEpisode.add(engine.getBoard());
+            engine.minMaxStep(Team.WHITE);
+            currEpisode.add(engine.getBoard());
+        }
+    }
+
+    private ChessBoardPosition parsePosition(MouseEvent e) {
+        int row = e.getY() / GRID_CELL_SIZE;
+        int col = e.getX() / GRID_CELL_SIZE;
+        return new ChessBoardPosition(row, col);
+    }
+
     private ActionListener getButtonListener(){
         return e -> {
             if (e.getActionCommand().equalsIgnoreCase("next") && currBoardIdx < currEpisode.size() - 1){
