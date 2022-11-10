@@ -22,7 +22,7 @@ public class ChessBoard {
         this.gameOver = false;
         this.winner = null;
     }
-    @SuppressWarnings("unchecked")
+
     public ChessBoard(ChessBoard board) {
         this.pieces = (HashMap<ChessBoardPosition, ChessPiece>) board.pieces.clone();
         this.gameOver = board.gameOver;
