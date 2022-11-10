@@ -13,6 +13,7 @@ public class ChessBoard {
     private Team winner;
     private HashMap<ChessBoardPosition, ChessPiece> pieces;
 
+    //recycle the board
     public ChessBoard(){
         reset();
     }
